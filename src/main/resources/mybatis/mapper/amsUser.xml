@@ -1,0 +1,54 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kthcorp.daisy.ams.repository.AmsUserMapper">
+
+    <select id="findAll" resultType="AmsUser">
+        SELECT
+        id AS id,
+        user_name AS userName
+        FROM ams_user
+    </select>
+
+    <select id="exists" resultType="Boolean">
+        SELECT EXISTS (
+        SELECT 1
+        FROM ams_user
+        WHERE ams_user.id = #{value}
+        )
+    </select>
+
+    <select id="findOne" resultType="AmsUser" parameterType="Long">
+        SELECT
+        id AS id,
+        user_name AS userName
+        FROM ams_user
+        WHERE ams_user.id = #{value}
+    </select>
+
+    <select id="findByUserName" resultType="AmsUser">
+        SELECT
+        id AS id,
+        user_name AS userName
+        FROM ams_user
+        WHERE ams_user.user_name = #{userName}
+    </select>
+
+    <insert id="save" parameterType="com.kthcorp.daisy.ams.repository.entity.AmsUser">
+        INSERT INTO ams_user (
+        user_name
+        )
+        VALUES (
+        #{userName}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.kthcorp.daisy.ams.repository.entity.AmsUser">
+        UPDATE ams_user SET
+        user_name = #{userName}
+        WHERE ams_user.id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="com.kthcorp.daisy.ams.repository.entity.AmsUser">
+        DELETE FROM ams_user WHERE ams_user.id = #{id}
+    </delete>
+
+</mapper>
