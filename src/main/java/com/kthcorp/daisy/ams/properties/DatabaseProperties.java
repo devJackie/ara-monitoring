@@ -5,23 +5,23 @@ package com.kthcorp.daisy.ams.properties;
  */
 public interface DatabaseProperties {
 
-    public String getDriverClassName();
+    String getDriverClassName();
 
-    public String getUrl();
+    String getUrl();
 
-    public String getUserName();
+    String getUserName();
 
-    public String getPassword();
+    String getPassword();
 
-    public boolean isInitialize();
+    boolean isInitialize();
 
-    public int getInitialSize();
+    int getInitialSize();
 
-    public int getMaxActive();
+    int getMaxActive();
 
-    public int getMaxIdle();
+    int getMaxIdle();
 
-    public int getMinIdle();
+    int getMinIdle();
 
-    public int getMaxWait();
+    int getMaxWait();
 }

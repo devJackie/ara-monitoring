@@ -1,0 +1,14 @@
+type: commonService
+
+sourceConfig:
+  type: local
+#  path: /data/amoeba/${date}/
+  path: //Users/devjackie/amoeba/${date}/
+#  pathAttributes:
+#  - type: none
+#  filePattern: ([\d+]{8}_[\d+]{6})[\d+]{3}.idx
+  pathAttributes:
+  - type: date
+    datePattern: yyyyMMdd
+    scanRange: -0d
+  filePattern: ([\d+]{8}).idx

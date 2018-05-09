@@ -1,12 +1,16 @@
 package com.kthcorp.daisy.ams.properties;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Created by devjackie on 2018. 5. 3..
  */
 @Data
+@ToString
+@EqualsAndHashCode
 @ConfigurationProperties(prefix = AmsDatabaseProperties.PREFIX)
 public class AmsDatabaseProperties implements DatabaseProperties {
 
