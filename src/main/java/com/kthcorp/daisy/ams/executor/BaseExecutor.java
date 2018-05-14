@@ -33,10 +33,10 @@ public abstract class BaseExecutor implements CommonExecutor {
 
     BaseExecutor(ApplicationContext context, Map<String, Object> config) {
         this.context = context;
-        SourceHandler sourceHandler = context.getBean(SourceHandler.class, config.get(SOURCE_CONFIG));
-        this.sourceHandler = sourceHandler;
         IndexStore indexStore = context.getBean(IndexStore.class, config.get(INDEX_CONFIG));
         this.indexStore = indexStore;
+        SourceHandler sourceHandler = context.getBean(SourceHandler.class, config.get(SOURCE_CONFIG));
+        this.sourceHandler = sourceHandler;
         FileIO fileIO = context.getBean(FileIO.class, config.get(FILE_IO_CONFIG));
         this.fileIO = fileIO;
     }
@@ -86,7 +86,7 @@ public abstract class BaseExecutor implements CommonExecutor {
                         try {
                             recInfoMapper.insertRecFileInfo(recFileInfo);
                         } catch (Exception e) {
-                            log.error("{}", e);
+                            throw e;
                         }
                     } else {
                         log.info("The idx file line split count is not 5. recFilePath -> {}", executeFileInfo.getSourceFile().getAbsolutePath());
