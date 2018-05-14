@@ -37,13 +37,25 @@ public class LocalFAO implements RemoteFAO {
     @Override
     public List<RemoteFileInfo> getListRemoteFiles(String remotePath) throws Exception {
         log.info(remotePath);
-        File file = new File(remotePath);
+
+        File[] path = new File(remotePath).listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return true;
+            }
+        });
         List<RemoteFileInfo> resultList = new ArrayList<>();
-        RemoteFileInfo remoteFile = new RemoteFileInfo();
-        remoteFile.setFilename(file.getName());
-        remoteFile.setModifyTime(file.lastModified());
-        remoteFile.setSize(file.length());
-        resultList.add(remoteFile);
+        if(path != null) {
+            for (File file : path) {
+                RemoteFileInfo remoteFile = new RemoteFileInfo();
+                remoteFile.setFileName(file.getName());
+                remoteFile.setParent(file.getParent());
+                remoteFile.setAbsolutePath(file.getAbsolutePath());
+                remoteFile.setModifyTime(file.lastModified());
+                remoteFile.setSize(file.length());
+                resultList.add(remoteFile);
+            }
+        }
         return resultList;
     }
 
@@ -65,7 +77,8 @@ public class LocalFAO implements RemoteFAO {
         if(path != null) {
             for (File file : path) {
                 RemoteFileInfo remoteFile = new RemoteFileInfo();
-                remoteFile.setFilename(file.getName());
+                remoteFile.setFileName(file.getName());
+                remoteFile.setParent(file.getParent());
                 remoteFile.setAbsolutePath(file.getAbsolutePath());
                 remoteFile.setModifyTime(file.lastModified());
                 remoteFile.setSize(file.length());

@@ -13,3 +13,25 @@ datasource:
     max-idle: 10
     min-idle: 10
     max-wait: 3000
+
+ams-meta:
+  common:
+    type: type
+    key: key
+    value: value
+    path: path
+    file-pattern: filePattern
+    path-attribute: pathAttributes
+    scan-range: scanRange
+    date-pattern: datePattern
+    date: date
+    text-encoding: textEncoding
+  execute:
+    default-execute-group: LIMIT
+
+# sample test
+name: prod-YAML
+environment: production
+servers:
+    - www.abc.com
+    - www.xyz.com

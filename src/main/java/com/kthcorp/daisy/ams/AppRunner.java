@@ -1,7 +1,7 @@
 package com.kthcorp.daisy.ams;
 
 import com.kthcorp.daisy.ams.executor.CommonExecutor;
-import com.kthcorp.daisy.ams.service.AmsUserService;
+import com.kthcorp.daisy.ams.properties.AmsMetaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -11,6 +11,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -18,74 +19,82 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class AppRunner implements ApplicationRunner {
 
-    @Autowired
-    private AmsUserService amsUserService;
-
-//    @Autowired
-//    private CommonService commonService;
-
     private final ApplicationContext context;
+    private final static String MUTEX = "mutex";
+    private final static String LINK_SERVER = "linkServer";
+    private final ZkClient zkClient;
+    private final AmsMetaProperties amsMetaProperties;
+
+    String executeGroup;
 
     @Autowired
-    public AppRunner(ApplicationContext context) {
+    public AppRunner(ApplicationContext context, ZkClient zkClient, AmsMetaProperties amsMetaProperties) {
         this.context = context;
+        this.zkClient = zkClient;
+        this.amsMetaProperties = amsMetaProperties;
     }
 
-//    @Override
-//    public void run(String... args) {
-//
-//        try {
-//            // Start the clock
-//            long start = System.currentTimeMillis();
-//
-//            // Kick of multiple, asynchronous lookups
-////        CompletableFuture<List<AmsUser>> page1 = amsUserService.findByUserName("test");
-//
-//            // business logic start
-////            CompletableFuture<String> results = commonService.executeTask("test");
-//            Executor executor = context.getBean(Executor.class);
-//            CompletableFuture<List<AmsUser>> results = commonService.executeTask1("test");
-//
-//            // Wait until they are all done
-////        CompletableFuture.allOf(phase1,phase2,phase3).join();
-//
-//            // Print results, including elapsed time
-//            log.info("Elapsed time: " + (System.currentTimeMillis() - start));
-////        log.info("--> {}", page1.get());
-//        } catch (Exception e) {
-//            log.error("", e);
-//        } finally {
-//
-//        }
-//    }
-
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         try {
             // Start the clock
             long start = System.currentTimeMillis();
 
-            // Kick of multiple, asynchronous lookups
-//        CompletableFuture<List<AmsUser>> page1 = amsUserService.findByUserName("test");
-
             // business logic start
-//            CompletableFuture<String> results = commonService.executeTask("test");
-            Yaml yaml = new Yaml();
-            Map config = (Map) yaml.load(new ClassPathResource("amoeba-collector.yml").getInputStream());
-            CommonExecutor executor = context.getBean(CommonExecutor.class, config);
-            CompletableFuture<String> phase = executor.executeTask();
-//            CompletableFuture<List<AmsUser>> results = commonService.executeTask1("test");
+            if (args.getOptionValues("executeGroup") != null && args.getOptionValues("executeGroup").size() > 0) {
+                executeGroup = args.getOptionValues("executeGroup").get(0);
+            } else {
+                executeGroup = (String) amsMetaProperties.getAmsMeta().get("execute").get("default-execute-group");
+            }
+            log.info("executeGroup: {}", executeGroup);
 
-            // Wait until they are all done
-//        CompletableFuture.allOf(phase1,phase2,phase3).join();
+            Yaml yaml = new Yaml();
+            Map rootConfig = (Map) yaml.load(new ClassPathResource("ams-collector.yml").getInputStream());
+            Map<String, Object> executeGroupConfig = (Map<String, Object>) rootConfig.get(executeGroup);
+
+            Map mutex = (Map) executeGroupConfig.get(MUTEX);
+            if (mutex != null) {
+                String groupMutexUri = (String) mutex.get("uri");
+                if (!zkClient.acquire(groupMutexUri)) {
+                    log.warn("Cannot acquire mutex");
+                    System.exit(0);
+                }
+            }
+
+            ((List<Map<String, String>>) executeGroupConfig.get(LINK_SERVER)).forEach(x -> x.forEach(this::executeProcess));
+
+            if (mutex != null) {
+                String groupMutexUri = (String) mutex.get("uri");
+                zkClient.acquireRelease(groupMutexUri);
+            }
 
             // Print results, including elapsed time
             log.info("Elapsed time: " + (System.currentTimeMillis() - start));
-        log.info("--> {}", phase.get());
         } catch (Exception e) {
             log.error("", e);
         } finally {
 
+        }
+    }
+
+    private void executeProcess(String profileName, String ymlPath) {
+        try {
+            Yaml yaml = new Yaml();
+            log.debug("{}", profileName);
+            log.debug("{}", ymlPath);
+            Map config = (Map) yaml.load(new ClassPathResource(ymlPath).getInputStream());
+            config.put("executeGroup", executeGroup);
+            config.put("executeName", profileName);
+            config.put("profileName", profileName);
+            log.debug("config : {}", config);
+            CommonExecutor executor = context.getBean(CommonExecutor.class, config);
+            CompletableFuture<String> phase = executor.executeTask();
+
+            // Wait until they are all done
+            CompletableFuture.allOf(phase).join();
+            log.debug("--> {}", phase.get());
+        } catch (Exception e) {
+            log.error("", e);
         }
     }
 }

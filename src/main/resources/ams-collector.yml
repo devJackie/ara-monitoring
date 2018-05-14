@@ -1,0 +1,7 @@
+LIMIT:
+  mutex:
+    type: zookeeper
+    uri: /ams/collector-mutex/LIMIT
+
+  linkServer:
+    - AMS_DD_RES_RECORD_FILE_LIST : linkServer/AMOEBA/AMS_DD_RES_RECORD_FILE_LIST.yml

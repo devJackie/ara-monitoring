@@ -29,7 +29,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="com.kthcorp.daisy.ams" level="info"
+    <logger name="com.kthcorp.daisy.ams" level="debug"
             additivity="false">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

@@ -23,9 +23,9 @@ public abstract class DatabaseConfig {
     abstract void initialize(org.apache.tomcat.jdbc.pool.DataSource dataSource);
 
     protected void configureDataSource(org.apache.tomcat.jdbc.pool.DataSource dataSource, DatabaseProperties databaseProperties) {
-        log.info("databaseProperties.getDriverClassName() : {}", databaseProperties.getDriverClassName());
-        log.info("databaseProperties.getUrl() : {}", databaseProperties.getUrl());
-        log.info("databaseProperties.getUserName() : {}", databaseProperties.getUserName());
+        log.debug("databaseProperties.getDriverClassName() : {}", databaseProperties.getDriverClassName());
+        log.debug("databaseProperties.getUrl() : {}", databaseProperties.getUrl());
+        log.debug("databaseProperties.getUserName() : {}", databaseProperties.getUserName());
         dataSource.setDriverClassName(databaseProperties.getDriverClassName());
         dataSource.setUrl(databaseProperties.getUrl());
         dataSource.setUsername(databaseProperties.getUserName());

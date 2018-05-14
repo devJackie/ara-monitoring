@@ -42,7 +42,7 @@ class AmsMybatisConfig extends MyBatisConfig {
 
     @Bean(name = "amsSqlSessionFactory")
     @Primary
-    public SqlSessionFactory userSqlSessionFactory(@Qualifier("amsDataSource") DataSource amsDataSource) throws Exception {
+    public SqlSessionFactory sqlSessionFactory(@Qualifier("amsDataSource") DataSource amsDataSource) throws Exception {
         SqlSessionFactoryBean sessionFactoryBean = new SqlSessionFactoryBean();
         configureSqlSessionFactory(sessionFactoryBean, amsDataSource);
         return sessionFactoryBean.getObject();

@@ -8,6 +8,4 @@ import java.util.concurrent.CompletableFuture;
 public interface CommonExecutor {
 
     CompletableFuture<String> executeTask() throws Exception;
-
-//    CompletableFuture<List<AmsUser>> executeTask1(String msg) throws Exception;
 }

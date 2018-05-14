@@ -1,6 +1,7 @@
 package com.kthcorp.daisy.ams.executor;
 
 import com.kthcorp.daisy.ams.fao.RemoteFileInfo;
+import com.kthcorp.daisy.ams.fileio.FileIOInfo;
 import lombok.Data;
 import lombok.ToString;
 
@@ -25,6 +26,9 @@ public class ExecuteFileInfo {
     private String executeTime;
 
     private RemoteFileInfo sourceFile;
+
+    private FileIOInfo recFileInfo;
+//    private FileIOInfo recThumbFile;
 
     private File downloadFile;
     private long downloadElapsedTime;

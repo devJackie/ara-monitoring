@@ -1,5 +1,6 @@
 package com.kthcorp.daisy.ams.executor;
 
+import com.kthcorp.daisy.ams.properties.AmsMetaProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,9 +24,12 @@ public class ExecutorFactory {
     @Value("${daisy.collector.baseWorkDir:work}")
     private String baseWorkDir;
 
+    AmsMetaProperties amsMetaProperties;
+
     @Autowired
-    public ExecutorFactory(ApplicationContext context) {
+    public ExecutorFactory(ApplicationContext context, AmsMetaProperties amsMetaProperties) {
         this.context = context;
+        this.amsMetaProperties = amsMetaProperties;
     }
 
     @Bean
@@ -34,9 +38,9 @@ public class ExecutorFactory {
     public CommonExecutor eventExecutor(Map<String, Object> config) throws Exception {
         log.debug("config -> {}", config);
         String indexType = (String) config.get("type");
-        if ("commonService".equals(indexType)) {
-            log.info("Create CommonServiceExecutor");
-            return new CommonServiceExecutor(context, config);
+        if ("storedRecInfo".equals(indexType)) {
+            log.info("Create StoredRecInfoExecutor");
+            return new StoredRecInfoExecutor(context, config);
         }
         throw new IllegalArgumentException("type: " + indexType);
     }

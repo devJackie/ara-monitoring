@@ -50,15 +50,14 @@ public class TemplatePathSourceHandler implements SourceHandler {
     }
 
     @Override
-    public List<RemoteFileInfo> getRemoteFiles() throws Exception{
+    public List<RemoteFileInfo> getRemoteFiles() throws Exception {
         log.debug("Start getRemoteFiles -  path: {}, pathAttributes: {}", path, pathAttributes);
         List<String> paths = createPath(path, null, pathAttributes, 0);
         log.debug("createPath: {}", paths);
 
         Set<RemoteFileInfo> remoteFileSet = new HashSet<>();
-        // 원격 전체 파일을 get 이거나 fileScanRange 아니거나 scanRange 이거나
         for (String globPath : paths) {
-            remoteFileSet.addAll(remoteFSHelper.getListRemoteFiles(globPath, filePattern));
+            remoteFileSet.addAll(remoteFSHelper.getListRemoteFiles(globPath));
         }
 
         List<RemoteFileInfo> remoteFiles = new ArrayList<>(remoteFileSet);
@@ -69,7 +68,7 @@ public class TemplatePathSourceHandler implements SourceHandler {
     }
 
     @Override
-    public boolean get(String remote, String local) throws Exception{
+    public boolean get(String remote, String local) throws Exception {
         return remoteFSHelper.copyToLocal(remote, local);
     }
 
@@ -132,5 +131,4 @@ public class TemplatePathSourceHandler implements SourceHandler {
         Collections.sort(result);
         return result;
     }
-
 }

@@ -1,4 +1,4 @@
-package com.kthcorp.daisy.ams.fao;
+package com.kthcorp.daisy.ams.fileio;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,7 @@ import java.util.Comparator;
 @Data
 @ToString
 @EqualsAndHashCode
-public class RemoteFileInfo implements Comparator<RemoteFileInfo>, Comparable<RemoteFileInfo> {
+public class FileIOInfo implements Comparator<FileIOInfo>, Comparable<FileIOInfo> {
 
     private String yyyyMMdd = "";
     private String fileName = "";
@@ -20,16 +20,17 @@ public class RemoteFileInfo implements Comparator<RemoteFileInfo>, Comparable<Re
     private long size = 0L;
     private String path = "";
     private String absolutePath = "";
-    private String ThumbAbsolutePath = "";
     private String parent = "";
+    private String recFilePath = "";
+    private String recThumbFilePath = "";
 
     @Override
-    public int compare(RemoteFileInfo o1, RemoteFileInfo o2) {
+    public int compare(FileIOInfo o1, FileIOInfo o2) {
         return o1.absolutePath.compareTo(o2.absolutePath);
     }
 
     @Override
-    public int compareTo(RemoteFileInfo o) {
+    public int compareTo(FileIOInfo o) {
         return this.absolutePath.compareTo(o.absolutePath);
     }
 
