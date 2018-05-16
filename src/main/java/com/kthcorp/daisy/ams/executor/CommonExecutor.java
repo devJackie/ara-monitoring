@@ -7,5 +7,5 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface CommonExecutor {
 
-    CompletableFuture<String> executeTask() throws Exception;
+    CompletableFuture<String> execute() throws Exception;
 }

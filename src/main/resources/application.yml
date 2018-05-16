@@ -6,7 +6,7 @@ datasource:
     initialize: true
     driver-class-name: "org.postgresql.Driver"
     url: "jdbc:postgresql://localhost:5432/test"
-    user-name: "postgres"
+    user-name: "daisy"
     password: "daisy!"
     initial-size: 10
     max-active: 10

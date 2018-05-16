@@ -50,10 +50,10 @@ public abstract class BaseExecutor implements CommonExecutor {
 
     @Transactional
     @Async
-    public CompletableFuture<String> executeTask() throws Exception {
+    public CompletableFuture<String> execute() throws Exception {
         String result = null;
 
-        log.debug("Looking up {}", "executeTask");
+        log.debug("Looking up {}", "execute");
 
         List<ExecuteFileInfo> executeFileInfos = getExecuteFileInfos();
 
@@ -67,39 +67,14 @@ public abstract class BaseExecutor implements CommonExecutor {
 
                 try {
                     log.debug("RecFile: {}", executeFileInfo.getSourceFile().getFileName());
-                    String[] splitPath = executeFileInfo.getSourceFile().getFileName().split("\\.");
-                    String[] splits = splitPath[0].split("_", 5);
-                    // 20180508101134_201804135_180201CHAM5_17_0122.MP4
-                    RecFileInfo recFileInfo = null;
-                    if (splits.length == 5) {
-                        for (int i = 0; i < splitPath.length - 1; i++) {
-                            recFileInfo = new RecFileInfo();
-                            recFileInfo.setStartDt(splits[0]);
-                            recFileInfo.setAplnFormId(splits[1]);
-                            recFileInfo.setAdNo(splits[2]);
-                            recFileInfo.setOtvChNo(splits[3]);
-                            recFileInfo.setChId(splits[4]);
-                            recFileInfo.setYyyyMMdd(executeFileInfo.getSourceFile().getYyyyMMdd());
-                            recFileInfo.setRecFilePath(executeFileInfo.getSourceFile().getAbsolutePath());
-                            recFileInfo.setRecThumbFilePath(executeFileInfo.getSourceFile().getThumbAbsolutePath());
-                        }
-                        try {
-                            recInfoMapper.insertRecFileInfo(recFileInfo);
-                        } catch (Exception e) {
-                            throw e;
-                        }
-                    } else {
-                        log.info("The idx file line split count is not 5. recFilePath -> {}", executeFileInfo.getSourceFile().getAbsolutePath());
-                    }
+                    executeTask(executeFileInfo);
                 } catch (Exception e) {
                     log.error("", e);
                 } finally {
                     executeFileInfo.setFinished(true);
                 }
-                executeFileInfo.setSuccess(true);
                 setIndex(executeFileInfo);
             }
-
         }
 
         // business logic flow
@@ -109,7 +84,6 @@ public abstract class BaseExecutor implements CommonExecutor {
 
         // 1-1. .idx 가 없을 경우 프로세스 종료, 매분 또는 일정 주기마다 .idx 가 있는지 체크 (sping boot 의 schedule 또는 cron 사용)
         // .idx 가 있을 경우는 2~6번 로직을 수행 후 주기마다 체크 하지 않도록 zookeeper index 저장
-
 
 
         // 2. 상위 30개 채널 쿼리 get + mss 프로그램 epg + 선천 광고 epg 매핑,
@@ -126,5 +100,33 @@ public abstract class BaseExecutor implements CommonExecutor {
         // Artificial delay of 1s for demonstration purposes
         Thread.sleep(1000L);
         return CompletableFuture.completedFuture(result);
+    }
+
+    public void executeTask(ExecuteFileInfo executeFileInfo) throws Exception {
+        String[] splitPath = executeFileInfo.getSourceFile().getFileName().split("\\.");
+        String[] splits = splitPath[0].split("_", 5);
+        // 20180508101134_201804135_180201CHAM5_17_0122.MP4
+        RecFileInfo recFileInfo = null;
+        if (splits.length == 5) {
+            for (int i = 0; i < splitPath.length - 1; i++) {
+                recFileInfo = new RecFileInfo();
+                recFileInfo.setStartDt(splits[0]);
+                recFileInfo.setAplnFormId(splits[1]);
+                recFileInfo.setAdNo(splits[2]);
+                recFileInfo.setOtvChNo(splits[3]);
+                recFileInfo.setChId(splits[4]);
+                recFileInfo.setYyyyMMdd(executeFileInfo.getSourceFile().getYyyyMMdd());
+                recFileInfo.setRecFilePath(executeFileInfo.getSourceFile().getAbsolutePath());
+                recFileInfo.setRecThumbFilePath(executeFileInfo.getSourceFile().getThumbAbsolutePath());
+            }
+            try {
+                recInfoMapper.insertRecFileInfo(recFileInfo);
+                executeFileInfo.setSuccess(true);
+            } catch (Exception e) {
+                throw e;
+            }
+        } else {
+            log.info("The idx file line split count is not 5. recFilePath -> {}", executeFileInfo.getSourceFile().getAbsolutePath());
+        }
     }
 }

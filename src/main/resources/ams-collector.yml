@@ -4,4 +4,4 @@ LIMIT:
     uri: /ams/collector-mutex/LIMIT
 
   linkServer:
-    - AMS_DD_RES_RECORD_FILE_LIST : linkServer/AMOEBA/AMS_DD_RES_RECORD_FILE_LIST.yml
+    - AMS_DD_FILE_LIST_RES_RECORD : linkServer/AMOEBA/AMS_DD_FILE_LIST_RES_RECORD.yml

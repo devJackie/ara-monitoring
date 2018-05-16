@@ -88,7 +88,7 @@ public class AppRunner implements ApplicationRunner {
             config.put("profileName", profileName);
             log.debug("config : {}", config);
             CommonExecutor executor = context.getBean(CommonExecutor.class, config);
-            CompletableFuture<String> phase = executor.executeTask();
+            CompletableFuture<String> phase = executor.execute();
 
             // Wait until they are all done
             CompletableFuture.allOf(phase).join();

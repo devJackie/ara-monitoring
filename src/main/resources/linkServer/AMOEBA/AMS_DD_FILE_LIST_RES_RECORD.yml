@@ -2,12 +2,12 @@ type: storedRecInfo
 
 indexConfig:
   type: zookeeper
-  uri: /index/AMS_DD_RES_RECORD_FILE_LIST
+  uri: /index/AMS_DD_FILE_LIST_RES_RECORD
 
 sourceConfig:
   type: local
 #  path: /data/amoeba/${date}/
-  path: /Users/devjackie/amoeba/${date}/
+  path: /Users/devjackie/ara-monitoring/amoeba/${date}/
   pathAttributes:
   - type: date
     datePattern: yyyyMMdd
@@ -15,7 +15,7 @@ sourceConfig:
 
 fileIOConfig:
   type: idx
-  path: /Users/devjackie/amoeba/${date}/
+  path: /Users/devjackie/ara-monitoring/amoeba/${date}/
   pathAttributes:
   - type: date
     datePattern: yyyyMMdd
