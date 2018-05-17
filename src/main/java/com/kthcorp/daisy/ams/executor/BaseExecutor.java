@@ -6,16 +6,15 @@ import com.kthcorp.daisy.ams.indexstore.IndexStore;
 import com.kthcorp.daisy.ams.repository.RecInfoMapper;
 import com.kthcorp.daisy.ams.repository.entity.RecFileInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * Created by devjackie on 2018. 5. 6..
@@ -103,30 +102,85 @@ public abstract class BaseExecutor implements CommonExecutor {
     }
 
     public void executeTask(ExecuteFileInfo executeFileInfo) throws Exception {
-        String[] splitPath = executeFileInfo.getSourceFile().getFileName().split("\\.");
-        String[] splits = splitPath[0].split("_", 5);
-        // 20180508101134_201804135_180201CHAM5_17_0122.MP4
-        RecFileInfo recFileInfo = null;
-        if (splits.length == 5) {
-            for (int i = 0; i < splitPath.length - 1; i++) {
-                recFileInfo = new RecFileInfo();
-                recFileInfo.setStartDt(splits[0]);
-                recFileInfo.setAplnFormId(splits[1]);
-                recFileInfo.setAdNo(splits[2]);
-                recFileInfo.setOtvChNo(splits[3]);
-                recFileInfo.setChId(splits[4]);
+        // 20180517053610_20180517_0109_32#201804019-180416GSPB30_201804032-180420RDLN15_201804028-180417TMSD30.MP4
+        String[] fileArray = FilenameUtils.getBaseName(executeFileInfo.getSourceFile().getFileName()).split("#");
+        if (fileArray.length > 1) {
+            // firFileInfo : [20180517053610, 20180517, 0109, 32]
+            // secFileInfo : [201804019-180416GSPB30, 201804032-180420RDLN15, 201804028-180417TMSD30]
+            List<String> firFileInfo = new ArrayList<>(Arrays.asList(fileArray[0].split("_", 4)));
+            List<String> secFileInfo = new ArrayList<>(Arrays.asList(fileArray[1].split("_")));
+            log.debug("firFileInfo : {}", firFileInfo);
+            log.debug("secFileInfo : {}", secFileInfo);
+
+            List<Map<String, Object>> resultRecInfoFiles = new ArrayList<>();
+
+            for (int i = 0; i < fileArray.length - 1; i++) {
+                for (int j = 0; j < secFileInfo.size(); j++) {
+                    Map<String, Object> tMap1 = new LinkedHashMap<>();
+                    String temp1 = fileArray[0];
+                    StringTokenizer tokenizer1 = new StringTokenizer(temp1, "_");
+                    while (tokenizer1.hasMoreTokens()) {
+                        tMap1.put("startDt", tokenizer1.nextToken());
+                        tMap1.put("brdcstDt", tokenizer1.nextToken());
+                        tMap1.put("chId", tokenizer1.nextToken());
+                        tMap1.put("chNo", tokenizer1.nextToken());
+                    }
+                    String temp2 = secFileInfo.get(j);
+                    StringTokenizer tokenizer2 = new StringTokenizer(temp2, "-");
+                    while (tokenizer2.hasMoreTokens()) {
+                        tMap1.put("aplnFormId", tokenizer2.nextToken());
+                        tMap1.put("adId", tokenizer2.nextToken());
+                    }
+                    resultRecInfoFiles.add(tMap1);
+                }
+            }
+
+            resultRecInfoFiles.stream().forEach(x -> {
+                RecFileInfo recFileInfo = new RecFileInfo();
+                recFileInfo.setStartDt((String) x.get("startDt"));
+                recFileInfo.setAplnFormId((String) x.get("aplnFormId"));
+                recFileInfo.setAdId((String) x.get("adId"));
+                recFileInfo.setChId((String) x.get("chId"));
+                recFileInfo.setOtvChNo((String) x.get("chNo"));
+                recFileInfo.setBrdcstDt((String) x.get("brdcstDt"));
                 recFileInfo.setYyyyMMdd(executeFileInfo.getSourceFile().getYyyyMMdd());
                 recFileInfo.setRecFilePath(executeFileInfo.getSourceFile().getAbsolutePath());
                 recFileInfo.setRecThumbFilePath(executeFileInfo.getSourceFile().getThumbAbsolutePath());
-            }
-            try {
+
                 recInfoMapper.insertRecFileInfo(recFileInfo);
                 executeFileInfo.setSuccess(true);
-            } catch (Exception e) {
-                throw e;
-            }
+
+            });
+
+
         } else {
             log.info("The idx file line split count is not 5. recFilePath -> {}", executeFileInfo.getSourceFile().getAbsolutePath());
         }
+
+//        String[] splitPath = executeFileInfo.getSourceFile().getFileName().split("\\.");
+//        String[] splits = splitPath[0].split("_", 5);
+//        // 20180508101134_201804135_180201CHAM5_17_0122.MP4
+//        RecFileInfo recFileInfo = null;
+//        if (splits.length == 5) {
+//            for (int i = 0; i < splitPath.length - 1; i++) {
+//                recFileInfo = new RecFileInfo();
+//                recFileInfo.setStartDt(splits[0]);
+//                recFileInfo.setAplnFormId(splits[1]);
+//                recFileInfo.setAdNo(splits[2]);
+//                recFileInfo.setOtvChNo(splits[3]);
+//                recFileInfo.setChId(splits[4]);
+//                recFileInfo.setYyyyMMdd(executeFileInfo.getSourceFile().getYyyyMMdd());
+//                recFileInfo.setRecFilePath(executeFileInfo.getSourceFile().getAbsolutePath());
+//                recFileInfo.setRecThumbFilePath(executeFileInfo.getSourceFile().getThumbAbsolutePath());
+//            }
+//            try {
+//                recInfoMapper.insertRecFileInfo(recFileInfo);
+//                executeFileInfo.setSuccess(true);
+//            } catch (Exception e) {
+//                throw e;
+//            }
+//        } else {
+//            log.info("The idx file line split count is not 5. recFilePath -> {}", executeFileInfo.getSourceFile().getAbsolutePath());
+//        }
     }
 }

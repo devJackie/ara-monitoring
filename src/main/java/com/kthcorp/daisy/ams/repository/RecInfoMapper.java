@@ -11,5 +11,5 @@ import org.springframework.transaction.annotation.Transactional;
 @AmsSchema
 public interface RecInfoMapper {
 
-    void insertRecFileInfo(RecFileInfo recFileInfo) throws Exception;
+    void insertRecFileInfo(RecFileInfo recFileInfo);
 }

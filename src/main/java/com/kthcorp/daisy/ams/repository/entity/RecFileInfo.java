@@ -14,12 +14,13 @@ public class RecFileInfo {
 
     private String yyyyMMdd;
     private String aplnFormId;
-    private String adNo;
+    private String adId;
     private String chId;
     private String otvChNo;
     private String startDt;
     private String recThumbFilePath;
     private String recFilePath;
+    private String brdcstDt;
     private String regDt;
 
     public RecFileInfo() {}
