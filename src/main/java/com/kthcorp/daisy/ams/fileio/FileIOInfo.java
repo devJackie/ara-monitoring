@@ -21,8 +21,8 @@ public class FileIOInfo implements Comparator<FileIOInfo>, Comparable<FileIOInfo
     private String path = "";
     private String absolutePath = "";
     private String parent = "";
-    private String recFilePath = "";
-    private String recThumbFilePath = "";
+    private String idxRecFilePath = "";
+    private String idxRecThumbFilePath = "";
 
     @Override
     public int compare(FileIOInfo o1, FileIOInfo o2) {

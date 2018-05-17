@@ -13,6 +13,7 @@ import lombok.ToString;
 public class RecFileInfo {
 
     private String yyyyMMdd;
+    private String fileId;
     private String aplnFormId;
     private String adId;
     private String chId;

@@ -15,6 +15,7 @@ import java.util.Comparator;
 public class RemoteFileInfo implements Comparator<RemoteFileInfo>, Comparable<RemoteFileInfo> {
 
     private String yyyyMMdd = "";
+    private String fileId = "";
     private String fileName = "";
     private long modifyTime = 0L;
     private long size = 0L;
@@ -22,6 +23,8 @@ public class RemoteFileInfo implements Comparator<RemoteFileInfo>, Comparable<Re
     private String absolutePath = "";
     private String ThumbAbsolutePath = "";
     private String parent = "";
+    private String idxRecFilePath = "";
+    private String idxRecThumbFilePath = "";
 
     @Override
     public int compare(RemoteFileInfo o1, RemoteFileInfo o2) {

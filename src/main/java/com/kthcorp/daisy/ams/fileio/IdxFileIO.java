@@ -4,12 +4,15 @@ import com.kthcorp.daisy.ams.fao.RemoteFileInfo;
 import com.kthcorp.daisy.ams.properties.AmsMetaProperties;
 import com.kthcorp.daisy.ams.util.CollectorUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by devjackie on 2018. 5. 9..
@@ -23,46 +26,59 @@ public class IdxFileIO extends BaseFileIO {
 
     @Override
     public List<FileIOInfo> getReadFileList(List<RemoteFileInfo> idxFiles) throws Exception {
-        log.debug("getReadLineFile");
         log.debug("config : {}", config);
 
-        String line = null;
+        List<FileIOInfo> fileIOList = new ArrayList<>();
+        List<FileIOInfo> recFileList = new ArrayList<>();
+        List<FileIOInfo> recThumbFileList = new ArrayList<>();
 
-        List<String> paths = createPath(path, null, pathAttributes, 0);
+        for (RemoteFileInfo idxFile : idxFiles) {
+            // yyyyMMdd 설정
+            idxFile.setYyyyMMdd(idxFile.getFileName().split("\\.")[0]);
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(idxFile.getAbsolutePath()), textEncoding));
 
-        log.debug("paths : {}", paths);
-
-        List<FileIOInfo> idxFileList = null;
-
-        for (String globPath : paths) {
-            for (RemoteFileInfo idxFile : idxFiles) {
-                log.debug("read file path : {}", globPath);
-                // yyyyMMdd 설정
-                idxFile.setYyyyMMdd(idxFile.getFileName().split("\\.")[0]);
-                log.debug("yyyyMMdd : {}", idxFile.getYyyyMMdd());
-                BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(idxFile.getAbsolutePath()), textEncoding));
-                idxFileList = new ArrayList<>();
-                FileIOInfo fileIOInfo = null;
-                try {
-                    while ((line = in.readLine()) != null) {
+            try {
+                String line;
+                while ((line = in.readLine()) != null) {
+                    FileIOInfo fileIOInfo;
+                    if (line.toUpperCase().endsWith(".MP4")) {
                         fileIOInfo = new FileIOInfo();
                         fileIOInfo.setYyyyMMdd(idxFile.getYyyyMMdd());
                         fileIOInfo.setFileName(idxFile.getFileName());
+                        fileIOInfo.setParent(idxFile.getParent());
                         fileIOInfo.setAbsolutePath(idxFile.getAbsolutePath());
-                        if (line.toUpperCase().endsWith(".MP4")) {
-                            fileIOInfo.setRecFilePath(line);
-                        }
-                        if (line.toUpperCase().endsWith(".JPG")) {
-                            fileIOInfo.setRecThumbFilePath(line);
-                        }
-                        idxFileList.add(fileIOInfo);
+                        fileIOInfo.setIdxRecFilePath(line);
+                        recFileList.add(fileIOInfo);
+                    } else if (line.toUpperCase().endsWith(".JPG")) {
+                        fileIOInfo = new FileIOInfo();
+                        fileIOInfo.setYyyyMMdd(idxFile.getYyyyMMdd());
+                        fileIOInfo.setFileName(idxFile.getFileName());
+                        fileIOInfo.setParent(idxFile.getParent());
+                        fileIOInfo.setAbsolutePath(idxFile.getAbsolutePath());
+                        fileIOInfo.setIdxRecThumbFilePath(line);
+                        recThumbFileList.add(fileIOInfo);
                     }
-                } finally {
-                    CollectorUtil.quietlyClose(in);
                 }
+
+                // .MP4 와 .JPG 를 하나의 객체로 merge
+                fileIOList = recFileList.stream().map(x -> {
+                    FileIOInfo fileIOInfo = new FileIOInfo();
+                    recThumbFileList.stream().filter(y -> (FilenameUtils.getBaseName(x.getIdxRecFilePath()).equals(FilenameUtils.getBaseName(y.getIdxRecThumbFilePath()))))
+                            .forEach(y -> {
+                            fileIOInfo.setYyyyMMdd(x.getYyyyMMdd());
+                            fileIOInfo.setFileName(x.getFileName());
+                            fileIOInfo.setParent(x.getParent());
+                            fileIOInfo.setAbsolutePath(x.getAbsolutePath());
+                            fileIOInfo.setIdxRecFilePath(x.getIdxRecFilePath());
+                            fileIOInfo.setIdxRecThumbFilePath(y.getIdxRecThumbFilePath());
+                    });
+                    return fileIOInfo;
+                }).collect(Collectors.toList());
+            } finally {
+                CollectorUtil.quietlyClose(in);
             }
         }
-        return idxFileList;
+        return fileIOList;
     }
 
     private List<String> createPath(String rootPath, Map<String, String> header, List<Map<String, Object>> subAttrs, int depthIdx) throws Exception{
