@@ -76,24 +76,26 @@ public abstract class BaseExecutor implements CommonExecutor {
         }
 
         // business logic flow
-        // 1. 아메바 .idx 파일 존재 체크
+        // 1. 아메바 .idx 파일 존재 체크, .idx 가 있을 경우는 주기마다 체크 하지 않도록 zookeeper index 저장
         // 1-1. .mp4, .jpg 파일 존재 체크
-        // 1-2. 아메바 녹화완료된 .idx 파일 load, 데이터 db 저장
+        // 1-2. 1 과 1-1 를 fileId 로 매핑 후 merge 하고 녹화된 파일정보 db 저장
+        // 1-3. .idx 가 없을 경우 프로세스 종료, 매분 또는 일정 주기마다 .idx 가 있는지 체크 (30분마다 또는 1시간마다 배치 실행할 예정 또는 sping boot 의 schedule 또는 cron 사용)
 
-        // 1-1. .idx 가 없을 경우 프로세스 종료, 매분 또는 일정 주기마다 .idx 가 있는지 체크 (sping boot 의 schedule 또는 cron 사용)
-        // .idx 가 있을 경우는 2~6번 로직을 수행 후 주기마다 체크 하지 않도록 zookeeper index 저장
+        // 2. mss 프로그램 epg 수집
 
+        // 3. 선천 epg 수집
 
-        // 2. 상위 30개 채널 쿼리 get + mss 프로그램 epg + 선천 광고 epg 매핑,
-        // 프로그램 종료시간 -15분을 start_dt, 15분후를 end_dt 로 기준 정함, 광고 epg 생성 되게 쿼리 생성
+        // 4. 상위 30개 채널 쿼리 get +  선천 광고 익일 epg 테이블 + 녹화파일 테이블 매핑, 녹화파일이 있으면 녹화파일은 제외
+        // 4-1. mss 프로그램 epg 테이블 + 4번 선천 광고 익일 epg 테이블 매핑
+        // (프로그램 종료시간 -15분을 start_dt, 15분후를 end_dt 로 기준 정함, 광고 epg 생성 되게 쿼리 생성 후 epg 데이터 db 저장)
 
-        // 4. 긴급 광고 편성표 데이터가 있는지 체크
+        // 6. 1-2번 녹화완료된 데이터와 4번 쿼리 데이터 매핑해서 녹화되지 않은 데이터 db 저장
 
-        // 5. 2번 녹화완료된 데이터와 3번 쿼리 데이터 매핑해서 녹화되지 않은 데이터 db 저장
+        // 7. 긴급 광고 편성표 데이터가 있는지 체크
 
-        // 6. 5번 데이터 + 4번 데이터 매핑, 4번 데이터는 최상위로 편성될 수 있게 생성
+        // 8. 6번 데이터 + 7번 데이터 매핑, 7번 데이터는 최상위로 편성될 수 있게 생성하는데 이미 6번 데이터에 7번 데이터가 존재하면 스킵, 아니면 db 저장
 
-        // 7. skylife 에서 제공하는 광고 파일 저장
+        // 9. skylife 에서 제공하는 미디어 서버 광고 파일 저장 (분당 ara 서버에 put 방식으로 진행 예정)
 
         // Artificial delay of 1s for demonstration purposes
         Thread.sleep(1000L);
@@ -118,23 +120,23 @@ public abstract class BaseExecutor implements CommonExecutor {
             List<Map<String, Object>> resultRecInfoFiles = new ArrayList<>();
 
             for (int i = 0; i < firFileInfo.size(); i++) {
-                Map<String, Object> tMap1 = new LinkedHashMap<>();
-                tMap1.put("fileId", firFileInfo.get(i));
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("fileId", firFileInfo.get(i));
                 String temp1 = fileArray[1];
                 StringTokenizer tokenizer1 = new StringTokenizer(temp1, "_");
                 while (tokenizer1.hasMoreTokens()) {
-                    tMap1.put("startDt", tokenizer1.nextToken());
-                    tMap1.put("brdcstDt", tokenizer1.nextToken());
-                    tMap1.put("chId", tokenizer1.nextToken());
-                    tMap1.put("otvChNo", tokenizer1.nextToken());
+                    map.put("startDt", tokenizer1.nextToken());
+                    map.put("brdcstDt", tokenizer1.nextToken());
+                    map.put("chId", tokenizer1.nextToken());
+                    map.put("otvChNo", tokenizer1.nextToken());
                 }
                 String temp2 = fileArray[2];
                 StringTokenizer tokenizer2 = new StringTokenizer(temp2, "_");
                 while (tokenizer2.hasMoreTokens()) {
-                    tMap1.put("aplnFormId", tokenizer2.nextToken());
-                    tMap1.put("adId", tokenizer2.nextToken());
+                    map.put("aplnFormId", tokenizer2.nextToken());
+                    map.put("adId", tokenizer2.nextToken());
                 }
-                resultRecInfoFiles.add(tMap1);
+                resultRecInfoFiles.add(map);
             }
 
             resultRecInfoFiles.parallelStream().forEach(x -> {
@@ -154,7 +156,7 @@ public abstract class BaseExecutor implements CommonExecutor {
                 executeFileInfo.setSuccess(true);
             });
         } else {
-            log.info("The idx file line split count is not 3. recFilePath -> {}", executeFileInfo.getSourceFile().getIdxRecFilePath());
+            log.info("The idx file line split count is not 3. idxRecFilePath -> {}", executeFileInfo.getSourceFile().getIdxRecFilePath());
         }
     }
 }

@@ -19,8 +19,8 @@ public class RecFileInfo {
     private String chId;
     private String otvChNo;
     private String startDt;
-    private String recThumbFilePath;
     private String recFilePath;
+    private String recThumbFilePath;
     private String brdcstDt;
     private String regDt;
 
